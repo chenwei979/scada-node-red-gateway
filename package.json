@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "node-red": {
     "nodes": {
-      "gateway": "gateway-node.js",
-      "tag": "tag-node.js",
-      "device-config": "device-config.js",
-      "collection-config": "collection-config.js"
+      "gateway": "./nodes/gateway-node.js",
+      "tag": "./nodes/tag-node.js",
+      "device-config": "./configs/device-config.js",
+      "collection-config": "./configs/collection-config.js"
     }
   },
   "dependencies": {
