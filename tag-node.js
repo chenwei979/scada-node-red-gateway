@@ -12,5 +12,5 @@ module.exports = function(RED) {
         this.collection = config.collection;
     }
 
-    RED.nodes.registerType('tag-node', TagNode)
+    RED.nodes.registerType('tag', TagNode)
 };

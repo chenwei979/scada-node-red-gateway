@@ -1,5 +1,5 @@
 <script>
-    RED.nodes.registerType('tag-node', {
+    RED.nodes.registerType('tag', {
         category: 'WAGO SCADA',
         defaults: {
             name: {
@@ -48,7 +48,7 @@
     })
 </script>
 
-<script type="text/x-red" data-template-name="tag-node">
+<script type="text/x-red" data-template-name="tag">
   <style>
     .form-row label {
       width: 120px
@@ -117,6 +117,6 @@
     <input type="text" id="node-input-collection">
   </div>
 </script>
-<script type="text/x-red" data-help-name="tag-node">
+<script type="text/x-red" data-help-name="tag">
   Tag
 </script>

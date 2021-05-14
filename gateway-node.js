@@ -7,5 +7,5 @@ module.exports = function(RED) {
     this.password = config.password;
   }
 
-  RED.nodes.registerType('gateway-node', GatewayNode)
+  RED.nodes.registerType('gateway', GatewayNode)
 };

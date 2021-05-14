@@ -1,5 +1,5 @@
 <script>
-    RED.nodes.registerType('gateway-node', {
+    RED.nodes.registerType('gateway', {
       category: 'WAGO SCADA',
       defaults: {
         clientId: {
@@ -32,7 +32,7 @@
   
   <script
     type="text/x-red"
-    data-template-name="gateway-node"
+    data-template-name="gateway"
   >
     <div class="form-row">
       <label for="node-config-input-clientId">
@@ -61,7 +61,7 @@
   </script>
   <script
     type="text/x-red"
-    data-help-name="gateway-node"
+    data-help-name="gateway"
   >
     Gateway
   </script>
