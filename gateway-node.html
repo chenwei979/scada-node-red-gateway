@@ -1,0 +1,71 @@
+<script>
+    RED.nodes.registerType('gateway-node', {
+      category: 'WAGO SCADA',
+      defaults: {
+        clientId: {
+          value: '',
+          require: true
+        },
+        gateway: {
+          value: '',
+          require: true
+        },
+        account: {
+          value: '',
+          require: true
+        },
+        password: {
+          value: '',
+          require: true
+        },
+      },
+      inputs: 1,
+      outputs: 1,
+      color: '#b0dfe3',
+      align: 'right',
+      icon: 'file.png',
+      label: function () {
+        return this.gateway
+      }
+    })
+  </script>
+  
+  <script
+    type="text/x-red"
+    data-template-name="gateway-node"
+  >
+    <div class="form-row">
+      <label for="node-config-input-clientId">
+        <i class="fa fa-tag"></i>
+        Client Id
+      </label>
+      <input type="text" id="node-config-input-clientId">
+    </div>
+    <div class="form-row">
+      <label for="node-config-input-gateway">
+        <i class="fa fa-tag"></i>
+        Gateway
+      </label>
+      <input type="text" id="node-config-input-gateway">
+    </div>
+    <div class="form-row">
+      <label for="node-config-input-account">
+        <i class="fa fa-tag"></i>
+        Account
+      </label>
+      <input type="text" id="node-config-input-account">
+    </div>
+    <div class="form-row">
+      <label for="node-config-input-password">
+        <i class="fa fa-tag"></i>
+        Password
+      </label>
+      <input type="password" id="node-config-input-password">
+    </div>
+  </script>
+  <script
+    type="text/x-red"
+    data-help-name="gateway-node"
+  >
+    Gateway Node
+  </script>

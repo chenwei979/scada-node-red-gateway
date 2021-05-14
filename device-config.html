@@ -1,0 +1,49 @@
+<script>
+    RED.nodes.registerType('device-config', {
+        category: 'config',
+        defaults: {
+            deviceSN: {
+                value: '',
+                require: true
+            },
+            ip: {
+                value: '',
+                require: true
+            },
+            port: {
+                value: '',
+                require: true
+            },
+            protocol: {
+                value: 'ModbusTCP',
+                require: true
+            },
+            slaveAddress: {
+                value: '1',
+                require: true
+            },
+            endian: {
+                value: '',
+                require: false
+            }
+        },
+        label: function () {
+            return this.deviceSN;
+        }
+    })
+</script>
+
+<script type="text/x-red"
+        data-template-name="device-config">
+  <div class="form-row">
+    <label for="node-config-input-deviceSN">
+      <i class="fa fa-tag"></i>
+      Device SN
+    </label>
+    <input type="text" id="node-config-input-deviceSN">
+  </div>
+</script>
+<script type="text/x-red"
+        data-help-name="device-config">
+  Device Config
+</script>

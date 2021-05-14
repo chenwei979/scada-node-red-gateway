@@ -1,0 +1,62 @@
+<script>
+    RED.nodes.registerType('collection-config', {
+        category: 'config',
+        defaults: {
+            id: {
+                value: '',
+                require: true
+            },
+            name: {
+                value: '',
+                require: true
+            },
+            sampleRate: {
+                value: 1000,
+                require: true
+            },
+            publishInterval: {
+                value: 1000,
+                require: true
+            }
+        },
+        label: function () {
+            return this.name;
+        }
+    })
+</script>
+
+<script type="text/x-red"
+        data-template-name="collection-config">
+  <div class="form-row">
+    <label for="node-config-input-id">
+      <i class="fa fa-tag"></i>
+      Id
+    </label>
+    <input type="text" id="node-config-input-id">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-name">
+      <i class="fa fa-tag"></i>
+      Name
+    </label>
+    <input type="text" id="node-config-input-name">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-sampleRate">
+      <i class="fa fa-tag"></i>
+      Sample Rate
+    </label>
+    <input type="number" id="node-config-input-sampleRate">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-publishInterval">
+      <i class="fa fa-tag"></i>
+      Publish Interval
+    </label>
+    <input type="number" id="node-config-input-publishInterval">
+  </div>
+</script>
+<script type="text/x-red"
+        data-help-name="collection-config">
+  Collection Config
+</script>
