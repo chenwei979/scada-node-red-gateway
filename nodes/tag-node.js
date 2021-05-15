@@ -25,11 +25,13 @@ module.exports = function (RED) {
         };
         setTimeout(() => {
             tagNode.send({
+                topic: 'tag-definition',
                 payload: tagDefinition
             });
         });
         tagNode.on('input', msg => {
             tagNode.send({
+                topic: 'tag-value',
                 payload: {
                     id: config.id,
                     value: msg.payload
