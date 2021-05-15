@@ -2,10 +2,6 @@
     RED.nodes.registerType('gateway', {
       category: 'WAGO SCADA',
       defaults: {
-        clientId: {
-          value: '',
-          require: true
-        },
         gateway: {
           value: '',
           require: true
@@ -34,12 +30,6 @@
     type="text/x-red"
     data-template-name="gateway"
   >
-    <div class="form-row">
-      <label for="node-config-input-clientId">
-        Client Id
-      </label>
-      <input type="text" id="node-config-input-clientId">
-    </div>
     <div class="form-row">
       <label for="node-config-input-gateway">
         Gateway

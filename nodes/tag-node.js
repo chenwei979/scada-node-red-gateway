@@ -18,6 +18,7 @@ module.exports = function (RED) {
             address: config.address,
             valueType: config.valueType,
             accessLevel: config.accessLevel,
+            mode: config.mode,
             description: config.description,
             unit: config.unit,
             device: config.device,
