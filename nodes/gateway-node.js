@@ -1,5 +1,8 @@
 const mqtt = require('mqtt');
 
+const mqttBrokerUrl = 'mqtt://vpc-sz-jx';
+const gatewaySN = 'GW678';
+
 const devices = new Map();
 const collections = new Map();
 const tagDefinitions = new Map();
@@ -22,9 +25,7 @@ module.exports = function (RED) {
             } else if (msg.topic === 'tag-definition') {
                 const tagDefinition = msg.payload;
 
-                let addNewDevice = false;
                 if (!devices.has(tagDefinition.device)) {
-                    addNewDevice = true;
                     const device = RED.nodes.getNode(tagDefinition.device);
                     devices.set(device.id, {
                         "DeviceNodeId": tagDefinition.device,
@@ -58,7 +59,7 @@ module.exports = function (RED) {
                 });
 
                 connectMqttBroker(gatewayNode).then((client) => {
-                    sendConfigurations(gatewayNode, client, addNewDevice);
+                    sendConfigurations(gatewayNode, client);
                 });
             }
         });
@@ -75,20 +76,34 @@ function connectMqttBroker(gatewayNode) {
     }
 
     return new Promise((resolve) => {
-        const client = mqtt.connect('mqtt://pc-scada-pro', {
-            clientId: "3cad2717-2ed8-47b1-9758-474d0fad7582",
-            username: "GW001",
-            password: "GW001",
+        const client = mqtt.connect(mqttBrokerUrl, {
+            username: gatewaySN,
+            password: gatewaySN,
         });
         client.on('connect', () => {
-            gatewayNode.log('mqtt://pc-scada-pro connected');
+            gatewayNode.log(`${mqttBrokerUrl} connected`);
             mqttClient = client;
             resolve(client);
+        });
+        client.on('close', () => {
+            gatewayNode.log(`${mqttBrokerUrl} close`);
+        });
+        client.on('reconnect', () => {
+            gatewayNode.log(`${mqttBrokerUrl} reconnect`);
+        });
+        client.on('disconnect', () => {
+            gatewayNode.log(`${mqttBrokerUrl} disconnect`);
+        });
+        client.on('offline', () => {
+            gatewayNode.log(`${mqttBrokerUrl} offline`);
+        });
+        client.on('error', () => {
+            gatewayNode.log(`${mqttBrokerUrl} error`);
         });
     });
 }
 
-async function sendConfigurations(gatewayNode, client, addNewDevice) {
+async function sendConfigurations(gatewayNode, client) {
     const deviceList = Array.from(devices, ([name, value]) => value);
     const collectionList = Array.from(collections, ([name, value]) => value);
     const tagDefinitionList = Array.from(tagDefinitions, ([name, value]) => value);
@@ -103,26 +118,45 @@ async function sendConfigurations(gatewayNode, client, addNewDevice) {
                     "CollectionName": collection.CollectionName,
                     "SampleRate": collection.SampleRate,
                     "PublishInterval": collection.PublishInterval,
-                    "TagData": tagDefinitionList.filter(tagDefinition => tagDefinition.CollectionNodeId === collection.CollectionNodeId)
+                    "TagData": tagDefinitionList.filter(tagDefinition => {
+                        return tagDefinition.CollectionNodeId === collection.CollectionNodeId;
+                    }).map(tag => {
+                        return {
+                            Tag: tag.name,
+                            Address: tag.address,
+                            ValueType: tag.valueType,
+                            AccessLevel: tag.accessLevel,
+                            Description: tag.description,
+                            Unit: tag.unit,
+                            Mode: tag.Mode
+                        };
+                    })
                 };
             })
         }
     });
-    if (addNewDevice) {
-        client.publish('GW001/DeviceInfo', JSON.stringify(deviceList), () => {
-            gatewayNode.log('send DeviceInfo');
-        });
-        gatewayNode.send({
-            topic: 'GW001/DeviceInfo',
-            payload: deviceList
-        });
-    }
+    client.publish(`${gatewaySN}/DeviceInfo`, JSON.stringify(deviceList), () => {
+        gatewayNode.log('send DeviceInfo');
+    });
+    gatewayNode.send({
+        topic: `${gatewaySN}/DeviceInfo`,
+        payload: deviceList.map(device => {
+            return {
+                "DeviceSN": device.DeviceSN,
+                "PLCProtocol": device.PLCProtocol,
+                "IP Address": device["IP Address"],
+                "Port": device.Port,
+                "SlaveAddress": device.SlaveAddress,
+                "Endian": device.Endian
+            };
+        })
+    });
 
-    client.publish('GW001/TagConfiguration', JSON.stringify(tagConfigurations), () => {
+    client.publish(`${gatewaySN}/TagConfiguration`, JSON.stringify(tagConfigurations), () => {
         gatewayNode.log('send TagConfiguration');
     });
     gatewayNode.send({
-        topic: 'GW001/TagConfiguration',
+        topic: `${gatewaySN}/TagConfiguration`,
         payload: tagConfigurations
     });
 }
