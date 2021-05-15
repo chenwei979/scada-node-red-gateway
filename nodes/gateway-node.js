@@ -107,21 +107,23 @@ async function sendConfigurations(gatewayNode, client) {
     const deviceList = Array.from(devices, ([name, value]) => value);
     const collectionList = Array.from(collections, ([name, value]) => value);
     const tagDefinitionList = Array.from(tagDefinitions, ([name, value]) => value);
-    client.publish(`${gatewaySN}/DeviceInfo`, JSON.stringify(deviceList), () => {
+
+    const deviceInfo = deviceList.map(device => {
+        return {
+            DeviceSN: device.deviceSN,
+            PLCProtocol: device.protocol,
+            "IP Address": device.ip,
+            Port: device.port,
+            SlaveAddress: device.slaveAddress,
+            Endian: device.endian,
+        };
+    });
+    client.publish(`${gatewaySN}/DeviceInfo`, JSON.stringify(deviceInfo), () => {
         gatewayNode.log('send DeviceInfo');
     });
     gatewayNode.send({
         topic: `${gatewaySN}/DeviceInfo`,
-        payload: deviceList.map(device => {
-            return {
-                DeviceSN: device.deviceSN,
-                PLCProtocol: device.protocol,
-                "IP Address": device.ip,
-                Port: device.port,
-                SlaveAddress: device.slaveAddress,
-                Endian: device.endian
-            };
-        })
+        payload: deviceInfo
     });
 
     const tagConfigurations = deviceList.map(device => {
