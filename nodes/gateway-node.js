@@ -1,3 +1,5 @@
+const mqtt = require('mqtt');
+
 const devices = new Map();
 const collections = new Map();
 const tagDefinitions = new Map();
@@ -20,7 +22,9 @@ module.exports = function (RED) {
             } else if (msg.topic === 'tag-definition') {
                 const tagDefinition = msg.payload;
 
+                let addNewDevice = false;
                 if (!devices.has(tagDefinition.device)) {
+                    addNewDevice = true;
                     const device = RED.nodes.getNode(tagDefinition.device);
                     devices.set(device.id, {
                         "DeviceNodeId": tagDefinition.device,
@@ -52,40 +56,81 @@ module.exports = function (RED) {
                     "TagNodeId": tagId,
                     ...tagDefinition
                 });
+
+                connectMqttBroker(gatewayNode).then((client) => {
+                    sendConfigurations(gatewayNode, client, addNewDevice);
+                });
             }
         });
-
-        setTimeout(() => {
-            const deviceList = Array.from(devices, ([name, value]) => value);
-            const collectionList = Array.from(collections, ([name, value]) => value);
-            const tagDefinitionList = Array.from(tagDefinitions, ([name, value]) => value);
-            gatewayNode.send({
-                topic: 'GW001/DeviceInfo',
-                payload: deviceList
-            });
-
-            const tagConfigurations = deviceList.map(device => {
-                return {
-                    DeviceSN: device.DeviceSN,
-                    Collections: collectionList.filter(collection => {
-                        return collection.DeviceNodeId === device.DeviceNodeId;
-                    }).map(collection => {
-                        return {
-                            "Id": collection.Id,
-                            "CollectionName": collection.CollectionName,
-                            "SampleRate": collection.SampleRate,
-                            "PublishInterval": collection.PublishInterval,
-                            "TagData": tagDefinitionList.filter(tagDefinition => tagDefinition.CollectionNodeId === collection.CollectionNodeId)
-                        };
-                    })
-                }
-            });
-            gatewayNode.send({
-                topic: 'GW001/TagConfiguration',
-                payload: tagConfigurations
-            });
-        }, 100);
     }
 
     RED.nodes.registerType('gateway', GatewayNode)
 };
+
+let mqttClient = null;
+
+function connectMqttBroker(gatewayNode) {
+    if (mqttClient) {
+        return Promise.resolve(mqttClient);
+    }
+
+    return new Promise((resolve) => {
+        const client = mqtt.connect('mqtt://pc-scada-pro', {
+            clientId: "3cad2717-2ed8-47b1-9758-474d0fad7582",
+            username: "GW001",
+            password: "GW001",
+        });
+        client.on('connect', () => {
+            gatewayNode.log('mqtt://pc-scada-pro connected');
+            mqttClient = client;
+            resolve(client);
+        });
+    });
+}
+
+async function sendConfigurations(gatewayNode, client, addNewDevice) {
+    const deviceList = Array.from(devices, ([name, value]) => value);
+    const collectionList = Array.from(collections, ([name, value]) => value);
+    const tagDefinitionList = Array.from(tagDefinitions, ([name, value]) => value);
+    const tagConfigurations = deviceList.map(device => {
+        return {
+            DeviceSN: device.DeviceSN,
+            Collections: collectionList.filter(collection => {
+                return collection.DeviceNodeId === device.DeviceNodeId;
+            }).map(collection => {
+                return {
+                    "Id": collection.Id,
+                    "CollectionName": collection.CollectionName,
+                    "SampleRate": collection.SampleRate,
+                    "PublishInterval": collection.PublishInterval,
+                    "TagData": tagDefinitionList.filter(tagDefinition => tagDefinition.CollectionNodeId === collection.CollectionNodeId)
+                };
+            })
+        }
+    });
+    if (addNewDevice) {
+        client.publish('GW001/DeviceInfo', JSON.stringify(deviceList), () => {
+            gatewayNode.log('send DeviceInfo');
+        });
+        gatewayNode.send({
+            topic: 'GW001/DeviceInfo',
+            payload: deviceList
+        });
+    }
+
+    client.publish('GW001/TagConfiguration', JSON.stringify(tagConfigurations), () => {
+        gatewayNode.log('send TagConfiguration');
+    });
+    gatewayNode.send({
+        topic: 'GW001/TagConfiguration',
+        payload: tagConfigurations
+    });
+}
+
+function delay(timer) {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, timer);
+    });
+}
