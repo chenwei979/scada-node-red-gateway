@@ -22,6 +22,9 @@ module.exports = function (RED) {
                 const tagId = msg.payload.id;
                 const tagValue = msg.payload.value;
                 tagValues.set(tagId, tagValue);
+                connectMqttBroker(gatewayNode).then((client) => {
+                    sendValues(gatewayNode, client);
+                });
             } else if (msg.topic === 'tag-definition') {
                 const tagDefinition = msg.payload;
 
@@ -160,5 +163,32 @@ async function sendConfigurations(gatewayNode, client) {
     gatewayNode.send({
         topic: `${gatewaySN}/TagConfiguration`,
         payload: tagConfigurations
+    });
+}
+
+async function sendValues(gatewayNode, client) {
+    const deviceList = Array.from(devices, ([name, value]) => value);
+    const collectionList = Array.from(collections, ([name, value]) => value);
+    const tagDefinitionList = Array.from(tagDefinitions, ([name, value]) => value);
+
+    const tagValues = deviceList.map(device => {
+        return {
+            Cache: false,
+            DeviceSN: device.deviceSN,
+            TagData: [
+                {
+                    "Time": "2021-05-16T01:37:47.642000Z",
+                    "Humidity": Math.floor(Math.random() * 100),
+                    "Temperature": Math.floor(Math.random() * 100),
+                }
+            ]
+        }
+    });
+    client.publish(`${gatewaySN}/TagValues`, JSON.stringify(tagValues), () => {
+        gatewayNode.log('send TagValues');
+    });
+    gatewayNode.send({
+        topic: `${gatewaySN}/TagValues`,
+        payload: tagValues
     });
 }
