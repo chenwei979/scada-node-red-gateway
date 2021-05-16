@@ -1,8 +1,8 @@
 const mqtt = require('mqtt');
 
 // const mqttBrokerUrl = 'mqtt://vpc-sz-jx';
-const mqttBrokerUrl = 'mqtt://pc-scada-pro';
-const gatewaySN = 'GW678';
+// const mqttBrokerUrl = 'mqtt://pc-scada-pro';
+// const gatewaySN = 'GW678';
 
 const devices = new Map();
 const collections = new Map();
@@ -12,9 +12,10 @@ const tagValues = new Map();
 module.exports = function (RED) {
     function GatewayNode(config) {
         RED.nodes.createNode(this, config);
-        this.gateway = config.gateway;
-        this.account = config.account;
-        this.password = config.password;
+        this.mqttBrokerUrl = 'mqtt://pc-scada-pro';
+        this.sn = 'GW678';
+        this.account = 'GW678';
+        this.password = 'GW678';
 
         const gatewayNode = this;
         gatewayNode.on('input', msg => {
@@ -79,29 +80,29 @@ function connectMqttBroker(gatewayNode) {
     }
 
     return new Promise((resolve) => {
-        const client = mqtt.connect(mqttBrokerUrl, {
-            username: gatewaySN,
-            password: gatewaySN,
+        const client = mqtt.connect(gatewayNode.mqttBrokerUrl, {
+            username: gatewayNode.account,
+            password: gatewayNode.password,
         });
         client.on('connect', () => {
-            gatewayNode.log(`${mqttBrokerUrl} connected`);
+            gatewayNode.log(`${gatewayNode.mqttBrokerUrl} connected`);
             mqttClient = client;
             resolve(client);
         });
         client.on('close', () => {
-            gatewayNode.log(`${mqttBrokerUrl} close`);
+            gatewayNode.log(`${gatewayNode.mqttBrokerUrl} close`);
         });
         client.on('reconnect', () => {
-            gatewayNode.log(`${mqttBrokerUrl} reconnect`);
+            gatewayNode.log(`${gatewayNode.mqttBrokerUrl} reconnect`);
         });
         client.on('disconnect', () => {
-            gatewayNode.log(`${mqttBrokerUrl} disconnect`);
+            gatewayNode.log(`${gatewayNode.mqttBrokerUrl} disconnect`);
         });
         client.on('offline', () => {
-            gatewayNode.log(`${mqttBrokerUrl} offline`);
+            gatewayNode.log(`${gatewayNode.mqttBrokerUrl} offline`);
         });
         client.on('error', () => {
-            gatewayNode.log(`${mqttBrokerUrl} error`);
+            gatewayNode.log(`${gatewayNode.mqttBrokerUrl} error`);
         });
     });
 }
@@ -121,11 +122,11 @@ async function sendConfigurations(gatewayNode, client) {
             Endian: device.endian,
         };
     });
-    client.publish(`${gatewaySN}/DeviceInfo`, JSON.stringify(deviceInfo), () => {
+    client.publish(`${gatewayNode.sn}/DeviceInfo`, JSON.stringify(deviceInfo), () => {
         gatewayNode.log('send DeviceInfo');
     });
     gatewayNode.send({
-        topic: `${gatewaySN}/DeviceInfo`,
+        topic: `${gatewayNode.sn}/DeviceInfo`,
         payload: deviceInfo
     });
 
@@ -157,11 +158,11 @@ async function sendConfigurations(gatewayNode, client) {
             })
         }
     });
-    client.publish(`${gatewaySN}/TagConfiguration`, JSON.stringify(tagConfigurations), () => {
+    client.publish(`${gatewayNode.sn}/TagConfiguration`, JSON.stringify(tagConfigurations), () => {
         gatewayNode.log('send TagConfiguration');
     });
     gatewayNode.send({
-        topic: `${gatewaySN}/TagConfiguration`,
+        topic: `${gatewayNode.sn}/TagConfiguration`,
         payload: tagConfigurations
     });
 }
@@ -184,11 +185,11 @@ async function sendValues(gatewayNode, client) {
             ]
         }
     });
-    client.publish(`${gatewaySN}/TagValues`, JSON.stringify(tagValues), () => {
+    client.publish(`${gatewayNode.sn}/TagValues`, JSON.stringify(tagValues), () => {
         gatewayNode.log('send TagValues');
     });
     gatewayNode.send({
-        topic: `${gatewaySN}/TagValues`,
+        topic: `${gatewayNode.sn}/TagValues`,
         payload: tagValues
     });
 }
