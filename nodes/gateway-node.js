@@ -23,9 +23,9 @@ module.exports = function (RED) {
                 const tagId = msg.payload.id;
                 const tagValue = msg.payload.value;
                 tagValues.set(tagId, tagValue);
-                connectMqttBroker(gatewayNode).then((client) => {
-                    sendValues(gatewayNode, client);
-                });
+                // connectMqttBroker(gatewayNode).then((client) => {
+                //     sendValues(gatewayNode, client);
+                // });
             } else if (msg.topic === 'tag-definition') {
                 const tagDefinition = msg.payload;
 
@@ -66,6 +66,10 @@ module.exports = function (RED) {
                     sendConfigurations(gatewayNode, client);
                 });
             }
+        });
+
+        connectMqttBroker(gatewayNode).then((client) => {
+            launchCollectionQueue(gatewayNode, client, 1000);
         });
     }
 
@@ -167,29 +171,58 @@ async function sendConfigurations(gatewayNode, client) {
     });
 }
 
-async function sendValues(gatewayNode, client) {
+async function launchCollectionQueue(gatewayNode, client, timer) {
+    while (true) {
+        await delay(timer);
+        sendValues(gatewayNode, client);
+    }
+}
+
+function sendValues(gatewayNode, client) {
     const deviceList = Array.from(devices, ([name, value]) => value);
     const collectionList = Array.from(collections, ([name, value]) => value);
     const tagDefinitionList = Array.from(tagDefinitions, ([name, value]) => value);
 
-    const tagValues = deviceList.map(device => {
+    const now = new Date();
+    const time = now.toISOString();
+    const deviceTagValues = deviceList.map(device => {
+        const deviceCollectionList = collectionList.filter(tag => tag.deviceNodeId === device.deviceNodeId);
+        const tagDataList = deviceCollectionList.map(collection => {
+            const tagData = {
+                "Time": time
+            };
+            const deviceCollectionTagDefinitionList = tagDefinitionList.filter(tag =>
+                tag.deviceNodeId === device.deviceNodeId
+                && tag.collectionNodeId === collection.collectionNodeId
+            );
+            deviceCollectionTagDefinitionList.filter(tagDefinition => {
+                return tagValues.has(tagDefinition.tagNodeId);
+            }).forEach(tagDefinition => {
+                tagData[tagDefinition.name] = tagValues.get(tagDefinition.tagNodeId);
+            });
+            return tagData;
+        });
+
         return {
             Cache: false,
             DeviceSN: device.deviceSN,
-            TagData: [
-                {
-                    "Time": "2021-05-16T01:37:47.642000Z",
-                    "Humidity": Math.floor(Math.random() * 100),
-                    "Temperature": Math.floor(Math.random() * 100),
-                }
-            ]
-        }
+            TagData: tagDataList
+        };
     });
-    client.publish(`${gatewayNode.sn}/TagValues`, JSON.stringify(tagValues), () => {
+
+    client.publish(`${gatewayNode.sn}/TagValues`, JSON.stringify(deviceTagValues), () => {
         gatewayNode.log('send TagValues');
     });
     gatewayNode.send({
         topic: `${gatewayNode.sn}/TagValues`,
-        payload: tagValues
+        payload: deviceTagValues
+    });
+}
+
+async function delay(timer) {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, timer);
     });
 }
