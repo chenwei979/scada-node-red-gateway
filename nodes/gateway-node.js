@@ -1,8 +1,6 @@
 const mqtt = require('mqtt');
 
-// const mqttBrokerUrl = 'mqtt://vpc-sz-jx';
-// const mqttBrokerUrl = 'mqtt://pc-scada-pro';
-// const gatewaySN = 'GW678';
+let queueCounter = 0;
 
 const devices = new Map();
 const collections = new Map();
@@ -68,8 +66,9 @@ module.exports = function (RED) {
             }
         });
 
+        queueCounter++;
         connectMqttBroker(gatewayNode).then((client) => {
-            launchCollectionQueue(gatewayNode, client, 1000);
+            launchCollectionQueue(gatewayNode, client, 1000, queueCounter);
         });
     }
 
@@ -178,10 +177,13 @@ async function sendConfigurations(gatewayNode, client) {
     });
 }
 
-async function launchCollectionQueue(gatewayNode, client, timer) {
-    while (true) {
+async function launchCollectionQueue(gatewayNode, client, timer, counter) {
+    while (queueCounter === counter) {
         await delay(timer);
         sendValues(gatewayNode, client);
+    }
+    if (queueCounter !== counter) {
+        gatewayNode.log('quit collection queue');
     }
 }
 
