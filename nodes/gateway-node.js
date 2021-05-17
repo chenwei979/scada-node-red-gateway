@@ -12,10 +12,10 @@ const tagValues = new Map();
 module.exports = function (RED) {
     function GatewayNode(config) {
         RED.nodes.createNode(this, config);
-        this.mqttBrokerUrl = 'mqtt://pc-scada-pro';
-        this.sn = 'GW678';
-        this.account = 'GW678';
-        this.password = 'GW678';
+        this.mqttBrokerUrl = config.mqttBrokerUrl;
+        this.sn = config.sn;
+        this.account = config.sn;
+        this.password = config.sn;
 
         const gatewayNode = this;
         gatewayNode.on('input', msg => {
@@ -77,13 +77,18 @@ module.exports = function (RED) {
 };
 
 let mqttClient = null;
+let mqttClientPromise = null;
 
 function connectMqttBroker(gatewayNode) {
     if (mqttClient) {
         return Promise.resolve(mqttClient);
     }
 
-    return new Promise((resolve) => {
+    if (mqttClientPromise) {
+        return mqttClientPromise;
+    }
+
+    mqttClientPromise = new Promise((resolve) => {
         const client = mqtt.connect(gatewayNode.mqttBrokerUrl, {
             username: gatewayNode.account,
             password: gatewayNode.password,
@@ -109,6 +114,8 @@ function connectMqttBroker(gatewayNode) {
             gatewayNode.log(`${gatewayNode.mqttBrokerUrl} error`);
         });
     });
+
+    return mqttClientPromise;
 }
 
 async function sendConfigurations(gatewayNode, client) {
