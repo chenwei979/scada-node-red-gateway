@@ -1,4 +1,4 @@
-module.exports = function(RED) {
+module.exports = function (RED) {
     function DeviceConfig(config) {
         RED.nodes.createNode(this, config);
         this.deviceSN = config.deviceSN;

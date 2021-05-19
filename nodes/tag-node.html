@@ -6,9 +6,9 @@
                 value: '',
                 required: true
             },
-            address: {
-                value: 0,
-                required: true
+            description: {
+                value: '',
+                required: false
             },
             valueType: {
                 value: 'Word',
@@ -18,13 +18,13 @@
                 value: 'read/write',
                 required: true
             },
+            address: {
+                value: 0,
+                required: true
+            },
             mode: {
                 value: 'Realtime',
                 required: true
-            },
-            description: {
-                value: '',
-                required: false
             },
             unit: {
                 value: '',
@@ -61,10 +61,10 @@
     <input type="text" id="node-input-name">
   </div>
   <div class="form-row">
-    <label for="node-input-address">
-      Address
+    <label for="node-input-description">
+      Description
     </label>
-    <input type="number" id="node-input-address">
+    <input type="text" id="node-input-description">
   </div>
   <div class="form-row">
     <label for="node-input-valueType">
@@ -82,28 +82,28 @@
     </label>
     <select type="text" id="node-input-accessLevel" style="width:70%;">
       <option value="read/write">Read/Write</option>
-      <option value="read">Read</option>
-      <option value="write">Write</option>
+      <option value="read">Readonly</option>
+  <!--<option value="write">Write</option>-->
     </select>
   </div>
-  <div class="form-row">
-    <label for="node-input-mode">
-      Mode
-    </label>
-    <input disabled type="text" id="node-input-mode">
-  </div>
-  <div class="form-row">
-    <label for="node-input-description">
-      Description
-    </label>
-    <input type="text" id="node-input-description">
-  </div>
-  <div class="form-row">
-    <label for="node-input-unit">
-      Unit
-    </label>
-    <input type="text" id="node-input-unit">
-  </div>
+<!--  <div class="form-row">-->
+<!--    <label for="node-input-address">-->
+<!--      Address-->
+<!--    </label>-->
+<!--    <input type="number" id="node-input-address">-->
+<!--  </div>-->
+<!--  <div class="form-row">-->
+<!--    <label for="node-input-mode">-->
+<!--      Mode-->
+<!--    </label>-->
+<!--    <input disabled type="text" id="node-input-mode">-->
+<!--  </div>-->
+<!--  <div class="form-row">-->
+<!--    <label for="node-input-unit">-->
+<!--      Unit-->
+<!--    </label>-->
+<!--    <input type="text" id="node-input-unit">-->
+<!--  </div>-->
   <div class="form-row">
     <label for="node-input-device">
       Device
